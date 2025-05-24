@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Toko Baju Online - Keranjang Belanja</title>
+<style>
+  /* Reset */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin:0;
+    background-color: #f7f7f7;
+    color: #333;
+  }
+  header {
+    background-color: #222;
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+  }
+  header h1 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.5rem;
+  }
+  .cart-icon {
+    position: relative;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+  }
+  /* Yellow cart background */
+  .cart-icon svg {
+    fill: #ffcc00;
+    stroke: #333;
+    stroke-width: 1.5;
+  }
+  .cart-count {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    background: #ff3f3f;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border-radius: 50%;
+    padding: 2px 6px;
+    min-width: 20px;
+    text-align: center;
+  }
+  main {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 15px;
+  }
+  h2 {
+    text-align: center;
+    color: #222;
+    margin-bottom: 25px;
+    font-weight: 800;
+  }
+  .products {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
+    gap: 25px;
+  }
+  .product-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.3s ease;
+  }
+  .product-card:hover {
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  }
+  .product-image {
+    width: 100%;
+    height: 300px;
+    overflow: hidden;
+  }
+  .product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+  .product-image img:hover {
+    transform: scale(1.05);
+  }
+  .product-info {
+    padding: 15px 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .product-name {
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+    color: #111;
+  }
+  .product-price {
+    color: #ff6600;
+    font-weight: 700;
+    font-size: 1.15rem;
+    margin-bottom: 15px;
+  }
+  button.add-to-cart {
+    background-color: #ffcc00;
+    border: none;
+    padding: 12px 0;
+    border-radius: 25px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    color: #222;
+    transition: background-color 0.3s ease;
+  }
+  button.add-to-cart:hover {
+    background-color: #e6b800;
+  }
+  /* Cart modal styling */
+  #cartModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  #cartModal.active {
+    display: flex;
+  }
+  .cart-content {
+    background: white;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 420px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.25);
+    display: flex;
+    flex-direction: column;
+  }
+  .cart-header {
+    background: #ffcc00;
+    padding: 20px;
+    font-weight: 800;
+    font-size: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #222;
+    border-radius: 10px 10px 0 0;
+  }
+  .close-cart {
+    cursor: pointer;
+    font-weight: 900;
+    font-size: 1.3rem;
+    border: none;
+    background: transparent;
+    color: #222;
+  }
+  .cart-items {
+    padding: 15px 20px;
+    flex-grow: 1;
+  }
+  .cart-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 15px;
+  }
+  .cart-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+  .cart-item img {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-right: 15px;
+  }
+  .cart-item-details {
+    flex: 1;
+  }
+  .cart-item-name {
+    font-weight: 700;
+    font-size: 1rem;
+  }
+  .cart-item-price {
+    color: #ff6600;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .cart-item-qty {
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
+  }
+  .cart-item-qty button {
+    background: #ffcc00;
+    border: none;
+    width: 24px;
+    height: 24px;
+    font-weight: 900;
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 4px;
+    color: #222;
+  }
+  .cart-item-qty span {
+    margin: 0 10px;
+    font-weight: 700;
+  }
+  .cart-footer {
+    padding: 20px;
+    border-top: 1px solid #ddd;
+  }
+  .cart-total {
+    font-weight: 800;
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+  }
+  button.checkout-btn {
+    width: 100%;
+    background: #ff6600;
+    border: none;
+    padding: 15px 0;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: white;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button.checkout-btn:hover {
+    background: #e65c00;
+  }
+  /* Responsive */
+  @media (max-width: 480px) {
+    .product-image {
+      height: 200px;
+    }
+    .cart-item img {
+      width: 60px;
+      height: 60px;
+    }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1> Devi shop</h1>
+  <div class="cart-icon" role="button" aria-label="Keranjang Belanja" tabindex="0" id="cartBtn">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M7 4h-2l-3 9v2h2l1 3h12v-2H8l-.5-1.5h9.5a1 1 0 0 0 0-2H7l1.08-3.22a1 1 0 0 1 .92-.78h9.5l2-4H8.12" />
+      <circle cx="9" cy="21" r="1" />
+      <circle cx="19" cy="21" r="1" />
+    </svg>
+    <div class="cart-count" id="cartCount">0</div>
+  </div>
+</header>
+
+<main>
+  <h2>Produk Terlaris Kami</h2>
+  <section class="products" aria-label="Produk Baju">
+    <!-- Shirts -->
+    <article class="product-card" tabindex="0" data-id="1" data-name="Kaos Polos Putih" data-price="50000" data-image="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=600&q=80">
+      <div class="product-image">
+        <img src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=600&q=80" alt="Kaos Polos Putih" />
+      </div>
+      <div class="product-info">
+        <div class="product-name">Kaos Polos Putih</div>
+        <div class="product-price">Rp 50.000</div>
+        <button class="add-to-cart" aria-label="Tambah Kaos Polos Putih ke keranjang">Tambah ke Keranjang</button>
+      </div>
+    </article>
+    <article class="product-card" tabindex="0" data-id="2" data-name="Kemeja Flanel Merah" data-price="70000" data-image="https://images.unsplash.com/photo-1519744792095-2f2205e87b6f?auto=format&fit=crop&w=600&q=80">
+      <div class="product-image">
+        <img src="https://images.unsplash.com/photo-1519744792095-2f2205e87b6f?auto=format&fit=crop&w=600&q=80" alt="Kemeja Flanel Merah" />
+      </div>
+      <div class="product-info">
+        <div class="product-name">Kemeja Flanel Merah</div>
+        <div class="product-price">Rp 70.000</div>
+        <button class="add-to-cart" aria-label="Tambah Kemeja Flanel Merah ke keranjang">Tambah ke Keranjang</button>
+      </div>
+    </article>
+    <!-- Pants -->
+    <article class="product-card" tabindex="0" data-id="3" data-name="Celana Jeans Pria" data-price="85000" data-image="https://images.unsplash.com/photo-1503342452485-86c9a79f87d0?auto=format&fit=crop&w=600&q=80">
+      <div class="product-image">
+        <img src="c:\Users\USER\Downloads\d7e86494-758d-42d9-bc2f-dddff1f3671f.jpg.jfif" alt="Celana Jeans Pria" />
+      </div>
+      <div class="product-info">
+        <div class="product-name">Celana Jeans Pria</div>
+        <div class="product-price">Rp 85.000</div>
+        <button class="add-to-cart" aria-label="Tambah Celana Jeans Pria ke keranjang">Tambah ke Keranjang</button>
+      </div>
+    </article>
+    <article class="product-card" tabindex="0" data-id="4" data-name="Celana Chino Wanita" data-price="46000" data-image="https://images.unsplash.com/photo-1572985964067-fd43efc56f37?auto=format&fit=crop&w=600&q=80">
+      <div class="product-image">
+        <img src="c:\Users\USER\Downloads\id-11134207-7r98y-lnpkw8gwzamh32@resize_w450_nl.webp" alt="Celana Chino Wanita" />
+      </div>
+      <div class="product-info">
+        <div class="product-name">Celana Chino Wanita</div>
+        <div class="product-price">Rp 46.000</div>
+        <button class="add-to-cart" aria-label="Tambah Celana Chino Wanita ke keranjang">Tambah ke Keranjang</button>
+      </div>
+    </article>
+    <!-- Shoes -->
+    <article class="product-card" tabindex="0" data-id="6" data-name="Sepatu Slip-On" data-price="75000" data-image="https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=600&q=80">
+      <div class="product-image">
+        <img src="https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=600&q=80" alt="Sepatu Slip-On" />
+      </div>
+      <div class="product-info">
+        <div class="product-name">Sepatu Slip-On</div>
+        <div class="product-price">Rp 75.000</div>
+        <button class="add-to-cart" aria-label="Tambah Sepatu Slip-On ke keranjang">Tambah ke Keranjang</button>
+      </div>
+    </article>
+    <!-- New products: rok plisket wanita and sepatu sneakers wanita -->
+    <article class="product-card" tabindex="0" data-id="7" data-name="Rok Plisket Wanita" data-price="65000" data-image="https://images.unsplash.com/photo-1520975910741-4d59fc07c60d?auto=format&fit=crop&w=600&q=80">
+      <div class="product-image">
+        <img src="c:\Users\USER\Downloads\download (10).jfif" alt="Rok Plisket Wanita" />
+      </div>
+      <div class="product-info">
+        <div class="product-name">Rok Plisket Wanita</div>
+        <div class="product-price">Rp 55.000</div>
+        <button class="add-to-cart" aria-label="Tambah Rok Plisket Wanita ke keranjang">Tambah ke Keranjang</button>
+      </div>
+    </article>
+    <article class="product-card" tabindex="0" data-id="8" data-name="Sepatu Sneakers Wanita" data-price="85000" data-image="https://images.unsplash.com/photo-1503342452485-70e99d325fdc?auto=format&fit=crop&w=600&q=80">
+      <div class="product-image">
+        <img src="https://images.unsplash.com/photo-1503342452485-70e99d325fdc?auto=format&fit=crop&w=600&q=80" alt="Sepatu Sneakers Wanita" />
+      </div>
+      <div class="product-info">
+        <div class="product-name">Sepatu Sneakers Wanita</div>
+        <div class="product-price">Rp 85.000</div>
+        <button class="add-to-cart" aria-label="Tambah Sepatu Sneakers Wanita ke keranjang">Tambah ke Keranjang</button>
+      </div>
+    </article>
+  </section>
+</main>
+
+<div id="cartModal" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+  <div class="cart-content">
+    <header class="cart-header">
+      <span id="cartTitle">Keranjang Belanja</span>
+      <button class="close-cart" aria-label="Tutup keranjang">&times;</button>
+    </header>
+    <section class="cart-items" aria-live="polite" aria-relevant="additions removals"></section>
+    <footer class="cart-footer">
+      <div class="cart-total">Total: Rp 0</div>
+      <button class="checkout-btn" id="checkoutBtn">Checkout</button>
+    </footer>
+  </div>
+</div>
+
+<script>
+  const cartBtn = document.getElementById('cartBtn');
+  const cartModal = document.getElementById('cartModal');
+  const closeCartBtn = document.querySelector('.close-cart');
+  const cartItemsContainer = document.querySelector('.cart-items');
+  const cartCount = document.getElementById('cartCount');
+  const cartTotal = document.querySelector('.cart-total');
+  const checkoutBtn = document.getElementById('checkoutBtn');
+  
+  let cart = [];
+
+  function formatPrice(price) {
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') ;
+  }
+
+  function updateCartCount() {
+    cartCount.textContent = cart.reduce((acc, item) => acc + item.qty, 0);
+    if (cartCount.textContent == '0') {
+      cartCount.style.display = 'none';
+    } else {
+      cartCount.style.display = 'block';
+    }
+  }
+
+  function updateCartTotal() {
+    let total = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
+    cartTotal.textContent = 'Total: Rp ' + formatPrice(total);
+  }
+
+  function renderCartItems() {
+    cartItemsContainer.innerHTML = '';
+    if (cart.length === 0) {
+      cartItemsContainer.innerHTML = '<p>Keranjang belanja masih kosong.</p>';
+      checkoutBtn.disabled = true;
+      checkoutBtn.style.backgroundColor = '#ccc';
+      return;
+    }
+    checkoutBtn.disabled = false;
+    checkoutBtn.style.backgroundColor = '#ff6600';
+
+    cart.forEach(item => {
+      const itemDiv = document.createElement('div');
+      itemDiv.classList.add('cart-item');
+      itemDiv.setAttribute('tabindex', '0');
+      
+      itemDiv.innerHTML = `
+        <img src="${item.image}" alt="${item.name}" />
+        <div class="cart-item-details">
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-price">Rp ${formatPrice(item.price)}</div>
+          <div class="cart-item-qty" aria-label="Jumlah ${item.name}">
+            <button aria-label="Kurangi jumlah ${item.name}" class="qty-decrease">−</button>
+            <span>${item.qty}</span>
+            <button aria-label="Tambah jumlah ${item.name}" class="qty-increase">+</button>
+          </div>
+        </div>
+      `;
+      const decreaseBtn = itemDiv.querySelector('.qty-decrease');
+      const increaseBtn = itemDiv.querySelector('.qty-increase');
+
+      decreaseBtn.addEventListener('click', () => {
+        if(item.qty > 1) {
+          item.qty--;
+        } else {
+          cart = cart.filter(ci => ci.id !== item.id);
+        }
+        renderCartItems();
+        updateCartCount();
+        updateCartTotal();
+      });
+
+      increaseBtn.addEventListener('click', () => {
+        item.qty++;
+        renderCartItems();
+        updateCartCount();
+        updateCartTotal();
+      });
+
+      cartItemsContainer.appendChild(itemDiv);
+    });
+  }
+
+  function addToCart(product) {
+    const existing = cart.find(item => item.id === product.id);
+    if (existing) {
+      existing.qty++;
+    } else {
+      cart.push({...product, qty:1});
+    }
+    renderCartItems();
+    updateCartCount();
+    updateCartTotal();
+  }
+
+  document.querySelectorAll('.add-to-cart').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const card = btn.closest('.product-card');
+      const product = {
+        id: card.dataset.id,
+        name: card.dataset.name,
+        price: parseInt(card.dataset.price),
+        image: card.dataset.image
+      };
+      addToCart(product);
+    });
+  });
+
+  cartBtn.addEventListener('click', () => {
+    cartModal.classList.add('active');
+    renderCartItems();
+  });
+
+  closeCartBtn.addEventListener('click', () => {
+    cartModal.classList.remove('active');
+  });
+
+  // Close modal by clicking outside content
+  cartModal.addEventListener('click', e => {
+    if (e.target === cartModal) {
+      cartModal.classList.remove('active');
+    }
+  });
+
+  // Keyboard accessibility: close cart modal with Esc key
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && cartModal.classList.contains('active')) {
+      cartModal.classList.remove('active');
+    }
+  });
+
+  checkoutBtn.addEventListener('click', () => {
+    if(cart.length === 0) {
+      alert('Keranjang belanja Anda kosong!');
+      return;
+    }
+    alert('Terima kasih sudah berbelanja! Anda telah memesan ' + cart.reduce((acc,i)=>acc+i.qty,0) + ' barang.');
+    cart = [];
+    renderCartItems();
+    updateCartCount();
+    updateCartTotal();
+    cartModal.classList.remove('active');
+  });
+
+  // Initialize
+  updateCartCount();
+</script>
+</body>
+</html>
+
